@@ -1,131 +1,111 @@
-# Documentação do Projeto MVP Engenharia de Dados
+# **MVP Engenharia de Dados - Análise do Consumo de Energia no Brasil (2018-2020)**  
 
-## 1. Visão Geral do Projeto
+**Autor:** [Wilton José da Silva Júnior](https://github.com/wilton-jose)  
+**Instituição:** PUC-RIO  
 
-### Objetivo
-Este projeto tem como objetivo principal otimizar a alocação de recursos energéticos no setor elétrico brasileiro, através da análise de padrões de consumo de energia elétrica por região, classe de consumidor e ramo de atividade.
+## **📌 Visão Geral**  
 
-### Contexto Setorial
-O setor energético brasileiro enfrenta desafios significativos na distribuição e transmissão de energia, com perdas que impactam a eficiência do sistema. A otimização da alocação de recursos energéticos é crucial para reduzir custos e melhorar a confiabilidade do fornecimento.
+Este projeto tem como objetivo analisar o consumo de energia elétrica no Brasil entre 2018 e 2020, utilizando dados públicos da **CCEE (Câmara de Comercialização de Energia Elétrica)**. O pipeline de dados foi construído em um ambiente **Databricks**, seguindo a arquitetura **Lakehouse (Bronze → Silver → Gold)** e implementando um modelo **Star Schema** para análise dimensional.  
 
-### Perguntas de Negócio
-- Como o consumo varia por região/estado ao longo do ano?
-- Quais ramos de atividade têm os maiores consumos?
-- Quais estados apresentam maior crescimento no consumo?
+🔹 **Principais perguntas respondidas:**  
+✔ Como o consumo varia por região/estado ao longo do ano?  
+✔ Quais ramos de atividade têm os maiores consumos?  
+✔ Existem padrões sazonais significativos no consumo?  
+✔ Quais estados apresentam maior crescimento no consumo?  
 
-### Arquitetura do Pipeline
-O pipeline de dados é estruturado em três camadas:
-- **Bronze**: Dados brutos ingeridos da fonte
-- **Silver**: Dados tratados e modelados em formato dimensional
-- **Gold**: Dados agregados para análise e visualização
+---
 
-Tecnologias utilizadas:
-- Apache Spark para processamento distribuído
-- Delta Lake para armazenamento de dados
-- Python para desenvolvimento das transformações
+## **📂 Estrutura do Projeto**  
 
-### Fontes de Dados
-- **Fonte**: CCEE (Câmara de Comercialização de Energia Elétrica)
-- **Período**: 2010-2023
-- **Formato original**: CSV
-- **Frequência de atualização**: Mensal
-- **Licença**: Dados abertos
-- **Método de obtenção**: Download direto do portal da CCEE
+### **🎯 Objetivos**  
+- Construir um pipeline de dados escalável para ingestão, transformação e análise.  
+- Identificar tendências e padrões no consumo de energia por estado, ramo de atividade e período.  
+- Gerar insights para otimização da distribuição energética.  
 
-## 2. Descrição das Tabelas
+### **📊 Arquitetura do Pipeline**  
 
-### Camada Bronze
+| **Camada**  | **Descrição** | **Tecnologias** |  
+|-------------|--------------|----------------|  
+| **Bronze**  | Dados brutos ingeridos da fonte (CSV) | Spark, Delta Lake |  
+| **Silver**  | Dados limpos, modelados em esquema estrela | Spark SQL, Delta Lake |  
+| **Gold**    | Agregações e análises prontas para visualização | Spark SQL, Delta Lake |  
 
-#### Tabela `bronze_cmee_br`
-- **Localização**: `/mnt/data/bronze/cmee_br`
-- **Descrição**: Armazena os dados brutos de consumo de energia elétrica por classe, ramo de atividade, submercado e estado.
+### **📋 Modelagem de Dados**  
 
-| Coluna | Tipo | Formato | Restrições | Descrição |
-|--------|------|---------|------------|-----------|
-| Data | DATE | YYYY-MM-DD | NOT NULL | Data da medição |
-| Classe | STRING | - | NOT NULL | Tipo de consumidor (Residencial, Industrial, etc.) |
-| Ramo_de_atividade | STRING | - | - | Ramo de atividade do consumidor |
-| Submercado | STRING | - | NOT NULL | Região geográfica |
-| Estado | STRING | - | NOT NULL | Sigla do estado |
-| Consumo_MWm | DOUBLE | - | NOT NULL, >= 0 | Consumo em megawatt-hora |
-| ingestion_date | TIMESTAMP | - | NOT NULL | Data/hora da ingestão |
-| file_name | STRING | - | NOT NULL | Nome do arquivo de origem |
+#### **Bronze (`bronze_cmee_br`)**  
+- Armazena os dados brutos da CCEE.  
+- Inclui metadados como `ingestion_date` e `file_name`.  
 
-**Exemplo de dados**:
-```
-Data,Classe,Ramo_de_atividade,Submercado,Estado,Consumo_MWm
-2010-01-01,Residencial,null,Sudeste/Centro-Oeste,SP,1000.0
-2010-01-01,Industrial,Indústria Química,Sudeste/Centro-Oeste,RJ,5000.0
-```
+#### **Silver (Esquema Estrela)**  
+- **Tabelas de dimensão:** `dim_data`, `dim_classe`, `dim_ramo`, `dim_submercado`, `dim_estado`  
+- **Tabela fato:** `fato_consumo`  
 
-### Camada Silver
+#### **Gold (Análises Prontas)**  
+- `gold_consumo_por_estado`  
+- `gold_tendencia_mensal`  
+- `gold_top_ramos`  
+- `gold_tendencia_mensal_avancada`  
 
-#### Tabelas de Dimensão
-- `silver_dim_data`: Dimensão temporal
-- `silver_dim_classe`: Classes de consumidores
-- `silver_dim_ramo`: Ramos de atividade
-- `silver_dim_submercado`: Submercados energéticos
-- `silver_dim_estado`: Estados brasileiros
+---
 
-#### Tabela de Fato `silver_fato_consumo`
-- **Localização**: `/mnt/silver/cmee/fato_consumo`
-- **Descrição**: Relaciona os dados de consumo com as dimensões através de chaves estrangeiras.
+## **⚙️ Tecnologias Utilizadas**  
 
-**Exemplo de dados**:
-```
-data_completa,id_classe,id_ramo,id_submercado,id_estado,consumo_mwm,ingestion_date
-2010-01-01,1,null,1,1,1000.0,2023-11-27T12:00:00.000Z
-2010-01-01,2,1,1,2,5000.0,2023-11-27T12:00:00.000Z
-```
+- **Apache Spark** (ETL e processamento distribuído)  
+- **Delta Lake** (Armazenamento em Lakehouse)  
+- **Databricks** (Plataforma de execução)  
+- **Python** (Análise e visualização)  
+- **Matplotlib/Seaborn** (Gráficos)  
 
-### Camada Gold
-- `gold_consumo_por_estado`: Consumo agregado por estado
-- `gold_tendencia_mensal`: Tendências mensais de consumo
-- `gold_top_ramos`: Ramos de atividade com maior consumo
-- `gold_tendencia_mensal_avancada`: Análise avançada de tendências
+---
 
-## 3. Detalhes do Pipeline
+## **📈 Principais Insights**  
 
-### Ingestão de Dados
-1. Download dos dados da CCEE
-2. Configuração da sessão Spark
-3. Carregamento dos dados na tabela `bronze_cmee_br`
+### **1️⃣ Consumo por Estado**  
+- **São Paulo (SP)** lidera em consumo total (**9,6M MWm**).  
+- **Acre (AC)** tem o menor consumo (**72K MWm**).  
 
-### Transformações na Camada Silver
-1. Criação das tabelas de dimensão
-2. Construção da tabela de fato
-3. Limpeza e tratamento de dados
-4. Junções entre tabelas
-5. Agregações e cálculos
+### **2️⃣ Tendência Mensal**  
+- **Pico em janeiro** (alta demanda no verão).  
+- **Queda em junho** (clima mais ameno).  
 
-### Criação da Camada Gold
-- `calcular_consumo_por_estado`: Agrega consumo por estado
-- `calcular_tendencia_mensal`: Calcula tendências temporais
-- `calcular_top_ramos`: Identifica os ramos com maior consumo
-- `criar_gold_tendencia_mensal_avancada`: Análise avançada com funções de janela
+### **3️⃣ Ramos com Maior Consumo**  
+1. **ACR (Ambiente de Contratação Regulada)** → **25,2M MWm**  
+2. **Metalurgia** → **2,7M MWm**  
+3. **Químicos** → **1,1M MWm**  
 
-## 4. Métricas e Indicadores
+---
 
-| Métrica | Definição | Fórmula | Tabela | Interpretação |
-|---------|-----------|---------|--------|---------------|
-| Consumo Total por Estado | Soma do consumo por estado | SUM(consumo_mwm) | gold_consumo_por_estado | Comparação entre regiões |
-| Média de Consumo por Estado | Média do consumo por estado | AVG(consumo_mwm) | gold_consumo_por_estado | Identificação de outliers |
-| Tendência Mensal | Consumo por mês/ano | SUM/AVG(consumo_mwm) | gold_tendencia_mensal | Evolução temporal |
-| Top Ramos | Ramos com maior consumo | SUM(consumo_mwm) LIMIT 10 | gold_top_ramos | Setores prioritários |
-| Tendência Avançada | Variação mensal | LAG functions | gold_tendencia_mensal_avancada | Análise detalhada |
+## **🚀 Como Executar o Projeto**  
 
-## 5. Monitoramento e Logging
+1. **Configurar o ambiente Databricks:**  
+   - Criar um cluster com **Apache Spark 3.x**.  
+   - Configurar acesso ao **DBFS (Databricks File System)**.  
 
-### Sistema de Logging
-- Implementado com a biblioteca `logging` do Python
-- Registra timestamp, nome do pipeline, etapa, status, registros processados e erros
+2. **Importar os notebooks:**  
+   - Disponíveis em: [MVP-Eng-Dados](https://github.com/wilton-jose/MVP-Eng-Dados)  
 
-### Acesso aos Logs
-- Através do driver do Spark
-- Arquivos de log no sistema de arquivos
+3. **Executar o pipeline:**  
+   - Rodar os notebooks na ordem:  
+     - `1_Ingestao_Bronze`  
+     - `2_Processamento_Silver`  
+     - `3_Analise_Gold`  
 
-### Métricas de Monitoramento
-- Tempo de execução por etapa
-- Número de registros processados
-- Número de erros encontrados
-- Status geral do pipeline
+4. **Visualizar resultados:**  
+   - Dashboards no Databricks ou exportar para Power BI/Tableau.  
+
+---
+
+## **📌 Próximos Passos**  
+
+✅ **Adicionar dados meteorológicos** para correlacionar clima e consumo.  
+✅ **Criar um dashboard interativo** com filtros por período e região.  
+✅ **Automatizar o pipeline** com agendamento (Airflow/Databricks Jobs).  
+
+---
+
+## **📜 Licença**  
+Este projeto utiliza dados públicos da **CCEE**. Consulte as políticas de uso em: [CCEE Dados Abertos](https://www.ccee.org.br/dados-abertos)  
+
+---
+
+**🔗 Repositório:** [GitHub - MVP Engenharia de Dados](https://github.com/wilton-jose/MVP-Eng-Dados)  
